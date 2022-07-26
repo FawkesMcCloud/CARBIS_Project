@@ -98,7 +98,6 @@ class UI:
             cmd = input().lower()
             cls()
 
-            # напрямую не выходим из поиска
             if cmd == "exit":
                 exit_flag = True
             elif cmd == "options":
