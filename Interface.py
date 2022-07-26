@@ -4,10 +4,10 @@ from Config import Config
 import requests
 
 class Interface:
-    config = Config("test.db")
+    config = None
 
     def __init__(self):
-        self.config = Config("test.db")
+        self.config = Config("config.db")
 
     def search(self, addr):
         url = self.config['url']

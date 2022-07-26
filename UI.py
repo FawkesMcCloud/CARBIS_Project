@@ -51,16 +51,18 @@ class UI:
         response = self.API.search(addr)
 
         code = response.status_code
-        if code == 400:
-            print("Неверный запрос")
-        elif code == 200:
+        if code == 200:
             self.geo_branch(response)
+        elif code == 400:
+            print("Неверный запрос")
         elif code == 401 or code == 403:
             print("Неверный API ключ")
         elif code == 413:
             print("Слишком большая длина запроса")
+        else:
+            print("Непредвиденная ошибка")
 
-        input("\n Для продолжения нажмите Enter...")
+        input("\nДля продолжения нажмите Enter...")
 
     def geo_branch(self, response):
         while True:
@@ -75,7 +77,7 @@ class UI:
             try:
                 cmd = int(cmd)
                 if cmd == 0:
-                    break
+                    return True
                 if 1 <= cmd <= length:
                     selected = suggestions[cmd - 1]
                     addr = selected['value']
@@ -96,6 +98,7 @@ class UI:
             cmd = cmd.lower()
             cls()
 
+            # напрямую не выходим из поиска
             if cmd == "exit":
                 exit_flag = True
             elif cmd == "options":
