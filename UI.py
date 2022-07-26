@@ -30,7 +30,7 @@ class UI:
             print(f"Текущие настройки:\n{self.API.config.show_config()}\n")
 
             self.print_options()
-            cmd = input()
+            cmd = input().lower()
             if cmd == "1":
                 cmd = input("Оставте поле пустым для отмены\nВведите новый токен:")
                 if cmd != "":
@@ -64,7 +64,8 @@ class UI:
 
         input("\nДля продолжения нажмите Enter...")
 
-    def geo_branch(self, response):
+    @staticmethod
+    def geo_branch(response):
         while True:
             suggestions = json.loads(response.content)["suggestions"]
             length = len(suggestions)
@@ -94,8 +95,7 @@ class UI:
         exit_flag = False
         while not exit_flag:
             self.print_initial()
-            cmd = input()
-            cmd = cmd.lower()
+            cmd = input().lower()
             cls()
 
             # напрямую не выходим из поиска
