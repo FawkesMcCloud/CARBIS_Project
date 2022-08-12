@@ -1,0 +1,14 @@
+{
+  "project_name": "dadata_project",
+  "crypt_key": "71c0d097074c2f93409bf47729f840fb",
+  "dev_dependencies": [
+    "wheel"
+  ],
+  "builder": {
+    "dist_name": "dadata_project",
+    "tocopy": [],
+    "pythonversion": "3.7.9",
+    "build_folder": "./build",
+    "distribution_folder": "./dist"
+  }
+}
