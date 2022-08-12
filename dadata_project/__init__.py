@@ -1,8 +1,16 @@
 # -*- encoding=utf-8 -*-
 # This file was generated automatically
+from loguru import logger
+
+from dadata_project.dadataapi import DaDataAPI
+
+from .appmenu import ApiCalls, AppMenuFactory
 
 from .logusto import Logusto, LogConfig
-from loguru import logger
+from .aplication import App
+from .config import Config
+from .abc import BaseMenuStateMachine
+from .userio import ConsoleUserIO
 
 __version__ = (1, 0, 0, 0)
 
@@ -12,11 +20,36 @@ logusto = Logusto(
     log_config=LogConfig(level=3, retention_days=3)
     )
 
+def initConfig() -> Config:
+    logger.info("Starting config init")
+    try:
+        config = Config()
+    except (TypeError, ValueError) as e:
+        logger.error("Invalid config %s", e)
+    logger.success("Successfully initialized config")
+    return config
+
 def start():
     try:
         print("dadata_project v"+".".join(map(str, __version__)))
-        # YOUR CODE HERE
-        pass
+        with logusto.app_context(logger):
+            config = initConfig()
+            io = ConsoleUserIO()
+            App(
+                config,
+                BaseMenuStateMachine(
+                    AppMenuFactory(
+                        config,
+                        ApiCalls(
+                            config, 
+                            DaDataAPI(config.general),
+                            io
+                        )
+                    ).create_main_state(),
+                    io
+                )
+            ).run()
+
     except KeyboardInterrupt:
         pass
 

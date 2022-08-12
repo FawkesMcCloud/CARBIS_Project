@@ -1,33 +1,49 @@
-from ast import Import
-from dadata_project.parametrica.io import YAMLFileConfigIO
-from sugengine import ISuggestionEngine, Suggestion, Coordinates
+from loguru import logger
 from typing import Iterable
-from config import Config
-
 import requests
+
+from .sugengine import ISuggestionEngine, Suggestion, Coordinates
+from .config import General
+
+class DaDataException(Exception):
+    ...
 
 class DaDataAPI(ISuggestionEngine):
 
-    def __init__(self, config:Config) -> None:
-        self.config = config
+    def __init__(self, config: General) -> None:
+        self.general_config = config
 
-    def do_suggest(self, query: str) -> Iterable[Suggestion]:
+    def get_suggestions(self, query: str, count: int = 10) -> Iterable[Suggestion]:
+        headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': "Token " + self.general_config.api_token}
+        json_data = {'query': query, "language": self.general_config.language.value, "count": count}
 
-        url = self.config.general.base_url
-        token = "Token" + self.config.general.api_token
-        language = self.config.general.language
+        response = requests.post(
+            self.general_config.base_url, 
+            headers=headers, 
+            json=json_data
+        )
 
-        headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': token}
-        json_data = {'query': query, "language": language}
+        logger.success(f"made request:{query}")
 
-        response = requests.post(url, headers=headers, json = json_data)
+        if response.status_code == 200:
+            suggestions = [Suggestion(i['value']) for i in response.json()['suggestions']]
+            logger.success(f"got response with {response.status_code} recieved {len(suggestions)} ")
+            return suggestions
+        else:
+            raise DaDataAPI("Что-то пошло не так")
 
-        suggestions = []
-        for i in response.json["suggestions"]:
-            suggestions.append(i["value"])
-        
-        return suggestions
+    def get_coordinates(self, suggestion: Suggestion) -> Coordinates:
+        headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': "Token " + self.general_config.api_token}
+        json_data = {'query': str(suggestion), "language": self.general_config.language.value, "count": 1}
 
-    def do_get_coords(self, addres: Suggestion) -> Coordinates:
-        return super().do_get_coords()
+        response = requests.post(
+            self.general_config.base_url, 
+            headers=headers, 
+            json=json_data
+        )
 
+        if response.status_code == 200:
+            result = response.json()["suggestions"][0]["data"]
+            return Coordinates(result["geo_lat"], result["geo_lon"])
+        else:
+            return Coordinates(-1.0, -1.0)
