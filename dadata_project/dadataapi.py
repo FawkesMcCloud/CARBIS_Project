@@ -46,4 +46,4 @@ class DaDataAPI(ISuggestionEngine):
             result = response.json()["suggestions"][0]["data"]
             return Coordinates(result["geo_lat"], result["geo_lon"])
         else:
-            return Coordinates(-1.0, -1.0)
+            raise DaDataException("Что-то пошло не так")
