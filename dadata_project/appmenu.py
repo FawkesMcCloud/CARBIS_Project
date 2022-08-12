@@ -52,7 +52,7 @@ class ApiCalls():
 
     def change_language(self, m:BaseMenuStateMachine, s:BaseMenuState, language:Language):
         self.config.update({'general': {'language' : language}})
-        s.prev_state = self.config.general
+        s.prev_state.header = str(self.config.general)
         m.change_state(s.prev_state)
          
 
@@ -97,7 +97,7 @@ class AppMenuFactory(BaseStateFactory):
             MenuItem("Русский", lambda m,s: self.calls.change_language(m,s, Language.Russian)),
             MenuItem("Английский", lambda m,s: self.calls.change_language(m,s, Language.English)),
         ]
-        return self.create_state(menu_items, f"текущий язык:{self.config.general.language}", self.create_settings_state())
+        return self.create_state(menu_items, f"текущий язык:{self.config.general.language.name}", self.create_settings_state())
 
     def create_suggestions_state(self) -> BaseMenuState:
         try:

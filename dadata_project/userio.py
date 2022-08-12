@@ -14,7 +14,8 @@ class Action(Enum):
 #KEYCODES
 KEY_UP = 72
 KEY_DOWN = 80
-KEY_SPECIAL = 224
+KEY_SPECIAL1 = 224
+KEY_SPECIAL2 = 0
 KEY_ENTER = 13
 KEY_ESC = 27
 
@@ -38,7 +39,7 @@ class ConsoleUserIO(BaseUserIO):
     def get_action(self) -> Action:
         key = ord(getch())
 
-        if key == KEY_SPECIAL:
+        if key == KEY_SPECIAL2 or key == KEY_SPECIAL1:
             key = ord(getch())
             if key == KEY_UP:
                 return Action.UP
