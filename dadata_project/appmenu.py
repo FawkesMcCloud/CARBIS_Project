@@ -1,8 +1,8 @@
 from typing import Callable, Iterable
 from loguru import logger
 
-from .sugengine import Suggestion
 from .dadataapi import DaDataAPI, DaDataException
+from .sugengine import Suggestion
 from .config import Config, Language
 from .abc import BaseMenuState, BaseMenuStateMachine, BaseStateFactory, MenuItem
 from .userio import Action, ConsoleUserIO
