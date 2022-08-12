@@ -30,7 +30,7 @@ class DaDataAPI(ISuggestionEngine):
             logger.success(f"got response with {response.status_code} recieved {len(suggestions)} ")
             return suggestions
         else:
-            raise DaDataAPI("Что-то пошло не так")
+            raise DaDataException("Что-то пошло не так")
 
     def get_coordinates(self, suggestion: Suggestion) -> Coordinates:
         headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': "Token " + self.general_config.api_token}
