@@ -98,9 +98,9 @@ class UserWindow(threading.Thread):
 
 
 class WindowsUserIO(BaseUserIO):
-    def __init__(self):
-        self.bridge = WindowBridge()
-        self.user_window = UserWindow(self.bridge)
+    def __init__(self, bridge: WindowBridge, user_window: UserWindow):
+        self.bridge = bridge
+        self.user_window = user_window
         self.bridge.th_lock.acquire()
         self.user_window.start()
         
