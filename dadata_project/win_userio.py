@@ -58,7 +58,7 @@ class UserWindow(threading.Thread):
 
     def read_menu_action(self) -> WinResult:
         event, values = self.window.read()
-        if event == sg.WIN_CLOSED:
+        if event == sg.WIN_CLOSED or event == 'Выход':
             return WinResult.EXIT
         for i, item in enumerate(self.current_state.items):
             if item.text == event:
