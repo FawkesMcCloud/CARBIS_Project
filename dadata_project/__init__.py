@@ -10,7 +10,7 @@ from .logusto import Logusto, LogConfig
 from .aplication import App
 from .config import Config
 from .abc import BaseMenuStateMachine
-from .userio import ConsoleUserIO
+from .win_userio import UserWindow, WindowBridge, WindowsUserIO
 
 __version__ = (1, 0, 0, 0)
 
@@ -34,7 +34,8 @@ def start():
         print("dadata_project v"+".".join(map(str, __version__)))
         with logusto.app_context(logger):
             config = initConfig()
-            io = ConsoleUserIO()
+            win_bridge = WindowBridge()
+            io = WindowsUserIO(win_bridge, UserWindow(win_bridge))
             App(
                 config,
                 BaseMenuStateMachine(
