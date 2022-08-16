@@ -1,3 +1,4 @@
+from asyncore import read
 import threading
 import PySimpleGUI as sg
 
@@ -10,6 +11,13 @@ from .userio import Action
 class WindowBridge:
     def __init__(self):
         self.action = None
+        self.th_lock = threading.Lock()
+        self.reader_value = None
+
+
+class WinTypes:
+    MENU = 'menu'
+    TEXTREADER = 'text_reader'
 
 
 class UserWindow(threading.Thread):
@@ -25,41 +33,74 @@ class UserWindow(threading.Thread):
 
     def run(self):
         while True:
-            event, values = self.window.read()
-            if event == sg.WIN_CLOSED: # if user closes window or clicks cancel
-                break
-
-            for i, item in enumerate(self.current_state.items):
-                if item.text == event:
-                    self.current_state.cur_idx = i
-                    self.bridge.action = Action.ENTER
-
+            with self.bridge.th_lock:
+                r = self.read_action()
+                if r == -1:
+                    break
+                elif r == 0:
+                    self.window.close()
+                    self.bridge.th_lock.acquire()
         self.window.close()
 
-    def update(self, state: BaseMenuState):
-        if self.current_state == state:
+    def read_action(self) -> int:
+        self.window.refresh()
+        if self.win_type == WinTypes.MENU:
+            return self.read_menu_action()
+        elif self.win_type == WinTypes.TEXTREADER:
+            return self.read_string_reader_action()
+
+    def read_menu_action(self) -> int:
+        event, values = self.window.read()
+        if event == sg.WIN_CLOSED:
+            return -1
+        for i, item in enumerate(self.current_state.items):
+            if item.text == event:
+                self.current_state.cur_idx = i
+                self.bridge.action = Action.ENTER
+        return 0
+
+    def read_string_reader_action(self) -> int:
+        event, values = self.window.read()
+        if event == sg.WIN_CLOSED or event == 'Применить':
+            self.bridge.reader_value = values[0]
+            return 0
+        else:
+            return 1
+
+    def set_menu_state(self, state: BaseMenuState):
+        if self.current_state == state and self.win_type == WinTypes.MENU:
             return
         else:
             self.current_state = state
         
+        if self.bridge.th_lock.locked == False:
+            self.bridge.th_lock.acquire()
         layout = [ [ sg.Text(state.header) ] ]
         for item in state.items:
             layout.append( [ sg.Button(item.text) ] )
-        # self.window.Rows.clear()
-        # self.window.add_rows(layout)
-        self.window.close()
         self.window = sg.Window('DaData project', layout)
-        pass
+        self.win_type = WinTypes.MENU
+        self.bridge.th_lock.release()
+
+    def set_to_string_reader(self, promt: str):
+        layout = [ 
+            [ sg.Text(promt), sg.InputText() ],
+            [ sg.Button('Применить') ]
+        ]
+        self.window = sg.Window('Изменение настройки', layout)
+        self.win_type = WinTypes.TEXTREADER
+        self.bridge.th_lock.release()
 
 
 class WindowsUserIO(BaseUserIO):
     def __init__(self):
         self.bridge = WindowBridge()
         self.user_window = UserWindow(self.bridge)
+        self.bridge.th_lock.acquire()
         self.user_window.start()
         
     def render_state(self, state:BaseMenuState) -> None:
-        self.user_window.update(state)
+        self.user_window.set_menu_state(state)
         pass
         # raise NotImplemented()
 
@@ -72,5 +113,9 @@ class WindowsUserIO(BaseUserIO):
             return result_act
 
     def get_line(self, promt:str) -> str:
-        pass
-        # raise NotImplemented()
+        self.user_window.set_to_string_reader(promt)
+        while self.bridge.reader_value == None:
+            pass
+        val = self.bridge.reader_value
+        self.bridge.reader_value = None
+        return val
