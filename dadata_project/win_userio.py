@@ -20,6 +20,12 @@ class WinTypes:
     TEXTREADER = 'text_reader'
 
 
+class WinResult:
+    EXIT = -1
+    NOTHING = 0
+    CHANGESTATE = 1
+
+
 class UserWindow(threading.Thread):
     def __init__(self, bridge: WindowBridge):
         super().__init__()
@@ -35,37 +41,37 @@ class UserWindow(threading.Thread):
         while True:
             with self.bridge.th_lock:
                 r = self.read_action()
-                if r == -1:
+                if r == WinResult.EXIT:
                     break
-                elif r == 0:
+                elif r == WinResult.CHANGESTATE:
                     self.window.close()
                     self.bridge.th_lock.acquire()
         self.window.close()
 
-    def read_action(self) -> int:
+    def read_action(self) -> WinResult:
         self.window.refresh()
         if self.win_type == WinTypes.MENU:
             return self.read_menu_action()
         elif self.win_type == WinTypes.TEXTREADER:
             return self.read_string_reader_action()
 
-    def read_menu_action(self) -> int:
+    def read_menu_action(self) -> WinResult:
         event, values = self.window.read()
         if event == sg.WIN_CLOSED:
-            return -1
+            return WinResult.EXIT
         for i, item in enumerate(self.current_state.items):
             if item.text == event:
                 self.current_state.cur_idx = i
                 self.bridge.action = Action.ENTER
-        return 0
+        return WinResult.CHANGESTATE
 
-    def read_string_reader_action(self) -> int:
+    def read_string_reader_action(self) -> WinResult:
         event, values = self.window.read()
         if event == sg.WIN_CLOSED or event == 'Применить':
             self.bridge.reader_value = values[0]
-            return 0
+            return WinResult.CHANGESTATE
         else:
-            return 1
+            return WinResult.NOTHING
 
     def set_menu_state(self, state: BaseMenuState):
         if self.current_state == state and self.win_type == WinTypes.MENU:
