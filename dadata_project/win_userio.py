@@ -36,6 +36,7 @@ class UserWindow(threading.Thread):
         self.window = sg.Window('DaData project', layout)
 
         self.bridge = bridge
+        self.win_type = None
 
     def run(self):
         while True:
@@ -79,8 +80,6 @@ class UserWindow(threading.Thread):
         else:
             self.current_state = state
         
-        if self.bridge.th_lock.locked == False:
-            self.bridge.th_lock.acquire()
         layout = [ [ sg.Text(state.header) ] ]
         for item in state.items:
             layout.append( [ sg.Button(item.text) ] )
@@ -107,8 +106,6 @@ class WindowsUserIO(BaseUserIO):
         
     def render_state(self, state:BaseMenuState) -> None:
         self.user_window.set_menu_state(state)
-        pass
-        # raise NotImplemented()
 
     def get_action(self) -> Enum:
         if self.user_window.isAlive() == False:
